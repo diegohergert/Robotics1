@@ -6,9 +6,9 @@
         "type": "shell",
         "command": "g++",
         "args": [
-          "homework1.cpp",
+          "Homework1/homework1.cpp",
           "-o",
-          "homework1.exe"
+          "Homework1/homework1.exe"
         ],
         "group": {
           "kind": "build",
