@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "build hello",
+        "type": "shell",
+        "command": "g++",
+        "args": [
+          "homework1.cpp",
+          "-o",
+          "homework1.exe"
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "problemMatcher": []
+      }
+    ]
+  }
+  
