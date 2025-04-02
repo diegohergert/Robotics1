@@ -2,10 +2,11 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgcodecs/imgcodecs.hpp>
 #include <iostream>
-
+int dummyCheck = (std::cout << "🔥 I AM RUNNING THIS BUILD 🔥\n", 0);
 int main() {
     std::cout << "Program started!" << std::endl;
-    std::string imagePath = "200_images/000000.jpg";  // ✅ Updated path
+    std::string imagePath = "200_images/000000.jpg";
+    std::cout << "Trying to load image: " << imagePath << std::endl;
     cv::Mat image = cv::imread(imagePath);
 
     if (image.empty()) {
