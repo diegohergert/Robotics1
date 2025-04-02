@@ -8,7 +8,6 @@
         "args": [
           "/EHsc",
           "/I", "C:/opencv/build/include",
-          "/I", "C:/opencv/build/include/opencv2",
           "Homework1/homework1.cpp",
           "/link",
           "/LIBPATH:C:/opencv/build/x64/vc16/lib",
@@ -18,11 +17,11 @@
         "options": {
           "cwd": "${workspaceFolder}"
         },
-        "problemMatcher": [],
         "group": {
           "kind": "build",
           "isDefault": true
-        }
+        },
+        "problemMatcher": []
       }
     ]
   }
