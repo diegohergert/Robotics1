@@ -2,27 +2,22 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "build",
+      "label": "build homework1",
       "type": "shell",
       "command": "g++",
       "args": [
-        "-g",
-        "${file}",
-        "-o",
-        "${fileDirname}/${fileBasenameNoExtension}.exe",
-        "-I",
-        "C:/path/to/opencv/build/include",
-        "-L",
-        "C:/path/to/opencv/build/x64/vc15/lib",
-        "-lopencv_core",
-        "-lopencv_imgproc",
-        "-lopencv_highgui"
+        "-I", "C:/opencv/build/include",
+        "-I", "C:/opencv/build/include/opencv2",
+        "-L", "C:/opencv/build/x64/vc16/lib",
+        "${workspaceFolder}/Homework1/homework1.cpp",
+        "-o", "${workspaceFolder}/Homework1/homework1.exe",
+        "-lopencv_world4110"
       ],
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": ["$gcc"]
+      "problemMatcher": []
     }
   ]
 }
