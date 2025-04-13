@@ -7,6 +7,9 @@
 /*
 * This method is used to track the SIFT features in a sequence of 200 images for homework 1 of robotics.
 * The images are stored in the "200_images" folder and are named from 000000.png to 000200.png.
+* The program uses OpenCV to read the images, detect SIFT features, and then match the features between consecutive images.
+* The matches are filtered using the ratio test (because FLANN returns the 2 best matches) and RANSAC to find inliers.
+* The matches are then drawn on the images and saved as a video file named "tracking_result.mp4".
 */
 int main() {
     std::cout << "OpenCV image test started!" << std::endl;
