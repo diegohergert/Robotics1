@@ -111,7 +111,7 @@ int main() {
         std::cout << "Paused. Press any key to continue..." << std::endl;
         cv::waitKey(0);
     }
-            */
+    */
 
         prevImg = currentImg.clone();
         prevKeypoints = currentKeypoints;
