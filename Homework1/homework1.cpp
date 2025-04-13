@@ -4,22 +4,25 @@
 #include <iomanip>
 #include <vector>
 
-
+/*
+* This method is used to track the SIFT features in a sequence of 200 images for homework 1 of robotics.
+* The images are stored in the "200_images" folder and are named from 000000.png to 000200.png.
+*/
 int main() {
     std::cout << "OpenCV image test started!" << std::endl;
 
     std::string imagePath = "200_images/";
-    const int frames = 200;
+    const int frames = 201;
     const cv::Size imageSize(760, 480);
     const cv::Size frameSize(1520, 480);
 
-    cv::VideoWriter videoWriter("tracking_result.mp4", cv::VideoWriter::fourcc('m','p','4','v'), 20, frameSize);
+    cv::VideoWriter videoWriter("tracking_result.mp4", cv::VideoWriter::fourcc('m','p','4','v'), 12, frameSize);
     if (!videoWriter.isOpened()) {
         std::cerr << "Error: Could not open the video writer." << std::endl;
         return -1;
     }
 
-    cv::Ptr<cv::SIFT> sift = cv::SIFT::create(1500);
+    cv::Ptr<cv::SIFT> sift = cv::SIFT::create(1200);
 
     std::stringstream ss;
     ss << imagePath << std::setw(6) << std::setfill('0') << 0 << ".png";
@@ -94,8 +97,7 @@ int main() {
         
         videoWriter.write(imgMatches);
 
-        // Uncomment these lines if you want to display the matches while processing
-        // Display the matches
+    // Uncomment to see display while processing (p to pause and any key to continue)
     /*cv::imshow("Matches", imgMatches);
     int key = cv::waitKey(1) & 0xFF;
     if (key == 'p') {  // If 'p' is pressed, pause indefinitely.
