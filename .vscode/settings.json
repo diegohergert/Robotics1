@@ -62,6 +62,15 @@
         "xmemory": "cpp",
         "xstring": "cpp",
         "xtr1common": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "chrono": "cpp",
+        "deque": "cpp",
+        "forward_list": "cpp",
+        "iomanip": "cpp",
+        "map": "cpp",
+        "queue": "cpp",
+        "set": "cpp",
+        "xtree": "cpp",
+        "numeric": "cpp"
     }
 }
