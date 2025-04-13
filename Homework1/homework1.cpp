@@ -12,21 +12,26 @@
 * The matches are then drawn on the images and saved as a video file named "tracking_result.mp4".
 */
 int main() {
+    //print the start message
     std::cout << "OpenCV image test started!" << std::endl;
 
+    //set up image path and video writer
     std::string imagePath = "200_images/";
     const int frames = 201;
     const cv::Size imageSize(760, 480);
     const cv::Size frameSize(1520, 480);
 
+    // Create a VideoWriter object to save the output video
     cv::VideoWriter videoWriter("tracking_result.mp4", cv::VideoWriter::fourcc('m','p','4','v'), 12, frameSize);
     if (!videoWriter.isOpened()) {
         std::cerr << "Error: Could not open the video writer." << std::endl;
         return -1;
     }
 
+    // Create a SIFT detector
     cv::Ptr<cv::SIFT> sift = cv::SIFT::create(1200);
 
+    // Read the first image and detect keypoints and descriptors
     std::stringstream ss;
     ss << imagePath << std::setw(6) << std::setfill('0') << 0 << ".png";
     cv::Mat prevImg = cv::imread(ss.str());
@@ -34,9 +39,7 @@ int main() {
         std::cerr << "Error: Could not read the image." << std::endl;
         return -1;
     }
-
     cv::resize(prevImg, prevImg, imageSize);
-
     std::vector<cv::KeyPoint> prevKeypoints;
     cv::Mat prevDescriptors;
     sift->detectAndCompute(prevImg, cv::noArray(), prevKeypoints, prevDescriptors);
@@ -45,7 +48,7 @@ int main() {
         return -1;
     }
 
-
+    // Loop through the remaining images
     for (int i = 1; i < frames; i++) {
         std::stringstream ssCurrent;
         ssCurrent << imagePath << std::setw(6) << std::setfill('0') << i << ".png";
@@ -63,6 +66,7 @@ int main() {
             continue;  // Skip this frame and try the next one
         }
 
+        // Match desriptors using FLANN (has kd tree like algorithm for matching)
         cv::Ptr<cv::DescriptorMatcher> matcher = cv::FlannBasedMatcher::create();
         std::vector<std::vector<cv::DMatch>> knnMatches;
         matcher->knnMatch(prevDescriptors, currentDescriptors, knnMatches, 2);
@@ -70,12 +74,12 @@ int main() {
         // Filter matches using a ratio test to check the distance between the best and second-best matches
         std::vector<cv::DMatch> goodMatches;
         for (size_t j = 0; j < knnMatches.size(); j++) {
-            if (knnMatches[j].size() >= 2 && knnMatches[j][0].distance < 0.7 * knnMatches[j][1].distance) {
+            if (knnMatches[j].size() >= 2 && knnMatches[j][0].distance < 0.8 * knnMatches[j][1].distance) {
                 goodMatches.push_back(knnMatches[j][0]);
             }
         }
 
-        //ransac
+        //ransac to remove outlier matches
         std::vector<cv::DMatch> inlierMatches;
         if (goodMatches.size() > 6) {
             std::vector<cv::Point2f> prevPoints, currentPoints;
@@ -84,7 +88,7 @@ int main() {
                 currentPoints.push_back(currentKeypoints[goodMatches[j].trainIdx].pt);
             }
             std::vector<uchar> inliersMask;
-            cv::Mat H = cv::findHomography(prevPoints, currentPoints, cv::RANSAC, 3, inliersMask);
+            cv::Mat affineH = cv::estimateAffine2D(prevPoints, currentPoints, inliersMask, cv::RANSAC, 5.0);
             for (size_t j = 0; j < inliersMask.size(); j++) {
                 if (inliersMask[j]) {
                     inlierMatches.push_back(goodMatches[j]);
