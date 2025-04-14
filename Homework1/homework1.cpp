@@ -79,7 +79,7 @@ int main() {
             }
         }
 
-        //ransac to remove outlier matches
+        //ransac to remove outlier matches by estimating the affine transformation
         std::vector<cv::DMatch> inlierMatches;
         if (goodMatches.size() > 6) {
             std::vector<cv::Point2f> prevPoints, currentPoints;
@@ -88,7 +88,7 @@ int main() {
                 currentPoints.push_back(currentKeypoints[goodMatches[j].trainIdx].pt);
             }
             std::vector<uchar> inliersMask;
-            cv::Mat affineH = cv::estimateAffine2D(prevPoints, currentPoints, inliersMask, cv::RANSAC, 5.0);
+            cv::Mat affineH = cv::estimateAffine2D(prevPoints, currentPoints, inliersMask, cv::RANSAC, 5.5);
             for (size_t j = 0; j < inliersMask.size(); j++) {
                 if (inliersMask[j]) {
                     inlierMatches.push_back(goodMatches[j]);
@@ -98,6 +98,7 @@ int main() {
             inlierMatches = goodMatches;
         }
 
+        //draw matches on the images
         cv::Mat imgMatches;
         cv::drawMatches(prevImg, prevKeypoints, currentImg, currentKeypoints, inlierMatches, imgMatches,
                       cv::Scalar::all(-1), cv::Scalar::all(-1), std::vector<char>());
@@ -112,12 +113,13 @@ int main() {
         cv::waitKey(0);
     }
     */
-
+        // update which image is which
         prevImg = currentImg.clone();
         prevKeypoints = currentKeypoints;
         prevDescriptors = currentDescriptors.clone();
     }
 
+    // release video writer
     videoWriter.release();
     std::cout << "Video saved as tracking_result.mp4" << std::endl;
     return 0;
