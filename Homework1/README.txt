@@ -2,8 +2,8 @@ Diego Hergert
 811281898
 
 This homework tracks features on a sequence of 200 images using SIFT features and FLANN matcher 
-(Uses Kd-tree and other algorithms). To remove outliers i selected the closest point out of the two 
-returned by the FLANN matcher then applied ransac to further remove errors. For ransac I used an 
+(Uses Kd-tree and other algorithms). To remove outliers, I selected the closest point out of the two 
+returned by the FLANN matcher then applied RANSAC to further remove errors. For RANSAC I used an 
 affine estimate to have less calculations for my program. The left fram in the "tracking_result.mp4"
 is the previous frame while the right image is the current frame. The dots are all the features found,
 and the lines connect features with valid matches. I have the video recorded for 15 frames per second
