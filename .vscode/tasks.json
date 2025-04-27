@@ -2,18 +2,18 @@
     "version": "2.0.0",
     "tasks": [
       {
-        "label": "Build homework1 with MSVC",
+        "label": "Build homework2 with MSVC",
         "type": "shell",
         "command": "cl.exe",
         "args": [
           "/EHsc",
           "/I", "C:/opencv/build/include",
           "/I", "C:/opencv/build/include/opencv2",
-          "Homework1/homework1.cpp",
+          "Homework2/homework2.cpp",
           "/link",
           "/LIBPATH:C:/opencv/build/x64/vc16/lib",
           "opencv_world4110.lib",
-          "/OUT:Homework1/homework1.exe"
+          "/OUT:Homework2/homework2.exe"
         ],
         "options": {
           "cwd": "${workspaceFolder}"

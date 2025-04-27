@@ -2,13 +2,13 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run Prebuilt homework1.exe",
+      "name": "Run Prebuilt homework2.exe",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/Homework1/homework1.exe",
+      "program": "${workspaceFolder}/Homework2/homework2.exe",
       "args": [],
       "stopAtEntry": false,
-      "cwd": "${workspaceFolder}/Homework1",
+      "cwd": "${workspaceFolder}/Homework2",
       "console": "integratedTerminal"
     }
   ]
