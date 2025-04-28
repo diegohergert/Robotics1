@@ -4,6 +4,12 @@
 #include <iomanip>
 #include <vector>
 
+cv::Mat K = (cv::Mat_<double>(3, 3) << 
+7.070493e02, 0, 6.040814e02, 
+0, 7.070493e02, 1.805066e02, 
+0, 0, 1);
+
+
 /*
 * This method is used to track the SIFT features in a sequence of 200 images for homework 1 of robotics.
 * The images are stored in the "200_images" folder and are named from 000000.png to 000200.png.
@@ -28,7 +34,7 @@ int main() {
     }
 
     // Create a SIFT detector
-    cv::Ptr<cv::SIFT> sift = cv::SIFT::create(5000, 4.2, .03, 8, 1.8);
+    cv::Ptr<cv::SIFT> sift = cv::SIFT::create(2000, 3.1, .05, 12, 2);
 
     // Read the first image and detect keypoints and descriptors
     std::stringstream ss;
@@ -77,8 +83,10 @@ int main() {
 
         // Filter matches using a ratio test to check the distance between the best and second-best matches
         std::vector<cv::DMatch> goodMatches;
+        const float maxDistance = 120.0; // ratio test threshold
         for (size_t j = 0; j < knnMatches.size(); j++) {
-            if (knnMatches[j].size() >= 2 && knnMatches[j][0].distance < 0.95 * knnMatches[j][1].distance) {
+            if (knnMatches[j].size() >= 2 && knnMatches[j][0].distance < 0.55 * knnMatches[j][1].distance
+                && knnMatches[j][0].distance < maxDistance) {
                 goodMatches.push_back(knnMatches[j][0]);
             }
         }
@@ -92,7 +100,8 @@ int main() {
                 currentPoints.push_back(currentKeypoints[goodMatches[j].trainIdx].pt);
             }
             std::vector<uchar> inliersMask;
-            cv::Mat affineH = cv::estimateAffine2D(prevPoints, currentPoints, inliersMask, cv::RANSAC, 5.5);
+            cv::findEssentialMat(prevPoints, currentPoints, 
+                K, cv::RANSAC, 0.99999, 1, inliersMask);
 
             for (size_t j = 0; j < inliersMask.size(); j++) {
                 if (inliersMask[j]) {

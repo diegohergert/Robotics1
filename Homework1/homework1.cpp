@@ -88,7 +88,7 @@ int main() {
                 currentPoints.push_back(currentKeypoints[goodMatches[j].trainIdx].pt);
             }
             std::vector<uchar> inliersMask;
-            cv::Mat affineH = cv::estimateAffine2D(prevPoints, currentPoints, inliersMask, cv::RANSAC, 5.5);
+            cv::estimateAffine2D(prevPoints, currentPoints, inliersMask, cv::RANSAC, 5.5);
             for (size_t j = 0; j < inliersMask.size(); j++) {
                 if (inliersMask[j]) {
                     inlierMatches.push_back(goodMatches[j]);
