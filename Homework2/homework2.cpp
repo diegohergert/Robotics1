@@ -16,7 +16,7 @@ cv::Mat plot3DTrajectory(const std::vector<cv::Point3f>& trajectory,
                          const cv::Size& plotSize)
 {
     cv::Mat plot = cv::Mat::zeros(plotSize, CV_8UC3);
-    float scale = .8f;
+    float scale = .75f;
     cv::Point2f center(plotSize.width/2, plotSize.height/2 + 120);
 
     // draw point cloud
@@ -76,7 +76,7 @@ int main() {
     }
 
     // SIFT setup
-    cv::Ptr<cv::SIFT> sift = cv::SIFT::create(3000, 3.1, .05, 12, 2);
+    cv::Ptr<cv::SIFT> sift = cv::SIFT::create(5000);
 
     // read first frame
     std::stringstream ss;
@@ -176,7 +176,7 @@ int main() {
             cv::Mat ph = (cv::Mat_<double>(4,1) << p.x, p.y, p.z, 1.0);
             cv::Mat pw = posePrev * ph;
             double w = pw.at<double>(3,0);
-            if (w > 1e-6) {
+            if (w > 1e-6 && (p.z > 0 && p.z < 100) && p.x > -30 && p.x < 30) {
                 globalCloud.emplace_back(
                     float(pw.at<double>(0,0)/w),
                     float(pw.at<double>(1,0)/w),
