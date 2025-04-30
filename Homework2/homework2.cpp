@@ -6,18 +6,17 @@
 
 // Camera intrinsic matrix
 cv::Mat K = (cv::Mat_<double>(3, 3) << 
-    7.070493e02, 0,           6.040814e02, 
-    0,           7.070493e02, 1.805066e02, 
-    0,           0,           1);
+    7.070493e02, 0, 6.040814e02, 
+    0, 7.070493e02, 1.805066e02, 
+    0, 0, 1);
 
 // Function to plot the 3D point cloud and trajectory
 cv::Mat plot3DTrajectory(const std::vector<cv::Point3f>& trajectory,
                          const std::vector<cv::Point3f>& globalCloud,
-                         const cv::Size& plotSize)
-{
+                         const cv::Size& plotSize) {
     cv::Mat plot = cv::Mat::zeros(plotSize, CV_8UC3);
-    float scale = .75f;
-    cv::Point2f center(plotSize.width/2, plotSize.height/2 + 120);
+    float scale = .8f;
+    cv::Point2f center(plotSize.width/2, plotSize.height/2 + 150);
 
     // draw point cloud
     for (const auto& pt : globalCloud) {
