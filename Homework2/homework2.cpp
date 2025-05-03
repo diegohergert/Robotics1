@@ -11,62 +11,70 @@ cv::Mat K = (cv::Mat_<double>(3, 3) <<
     0, 0, 1);
 
 // Function to plot the 3D point cloud and trajectory
+// Takes in the trajectory and global point cloud, and returns a plot
+// The plot is a 2D representation of the 3D data, where the x-axis is the x-coordinate
 cv::Mat plot3DTrajectory(const std::vector<cv::Point3f>& trajectory,
                          const std::vector<cv::Point3f>& globalCloud,
                          const cv::Size& plotSize) {
     cv::Mat plot = cv::Mat::zeros(plotSize, CV_8UC3);
     float scale = .8f;
-    cv::Point2f center(plotSize.width/2, plotSize.height/2 + 150);
+    cv::Point2f center(plotSize.width/2, plotSize.height/2 + 150); // the center and down a bit
 
-    // draw point cloud
+    // draw point cloud in 2D 
     for (const auto& pt : globalCloud) {
-        
-        cv::Point2f p2(
+        cv::Point2f p2( //creates 2D point from camera coordinates
             center.x + pt.x * scale,
-            center.y - pt.z * scale   // invert Y for display
+            center.y - pt.z * scale   // goes the opposite direction
         );
-        if (p2.x>=0 && p2.x<plotSize.width && p2.y>=0 && p2.y<plotSize.height)
+        if (p2.x >= 0 && p2.x < plotSize.width && p2.y >= 0 && p2.y < plotSize.height) //check if can be plotted
             cv::circle(plot, p2, 1, cv::Scalar(0,100,0), -1);
     }
 
     // draw trajectory
     if (trajectory.size() > 1) {
-        for (size_t i = 1; i < trajectory.size(); ++i) {
-            cv::Point2f p1(
+        for (size_t i = 1; i < trajectory.size(); ++i) { //for the line
+            cv::Point2f p1( //previous camera position
                 center.x + trajectory[i-1].x * scale,
                 center.y - trajectory[i-1].z * scale
             );
-            cv::Point2f p2(
+            cv::Point2f p2( //current camera position
                 center.x + trajectory[i].x * scale,
                 center.y - trajectory[i].z * scale
             );
             cv::line(plot, p1, p2, cv::Scalar(255,255,0), 2);
         }
         // current camera pos
-        cv::Point2f cur(
+        cv::Point2f cur( //for the dot (camera position)
             center.x + trajectory.back().x * scale,
             center.y - trajectory.back().z * scale
         );
-        cv::circle(plot, cur, 5, cv::Scalar(255,255,0), -1);
+        cv::circle(plot, cur, 5, cv::Scalar(255, 255, 0), -1);
     }
 
     return plot;
-}
+} //plot3DTrajectory
 
+/*
+* This function is the main entry point of the program.
+* It initializes the OpenCV window, reads images from a specified path,
+* and processes them to extract features, match them, and compute the camera trajectory.
+* The results are displayed in a window and saved as a video file.
+* The program uses SIFT for feature detection and matching, and FLANN for fast matching.
+*/
 int main() {
     std::cout << "OpenCV 3D Cloud & Trajectory demo\n";
 
-    const std::string imagePath = "200_images/";
+    const std::string imagePath = "200_images/"; //path to images
     const int frames = 201;
     const cv::Size imageSize(1500, 400);
 
-    cv::namedWindow("3D Cloud & Trajectory", cv::WINDOW_NORMAL);
+    cv::namedWindow("3D Cloud & Trajectory", cv::WINDOW_NORMAL); //will contain image match and plot
     cv::resizeWindow("3D Cloud & Trajectory", 1500, 800);
 
+    // Video writer setup
     cv::VideoWriter writer(
         "tracking_result.mp4",
-        cv::VideoWriter::fourcc('m','p','4','v'),
-        12,
+        cv::VideoWriter::fourcc('m','p','4','v'), 12,
         cv::Size(imageSize.width, imageSize.height*2)
     );
     if (!writer.isOpened()) {
@@ -87,15 +95,17 @@ int main() {
     }
     cv::resize(prevImg, prevImg, imageSize);
 
+    // detect features
     std::vector<cv::KeyPoint> prevKp;
     cv::Mat prevDesc;
     sift->detectAndCompute(prevImg, cv::noArray(), prevKp, prevDesc);
 
     // initial trajectory & map
-    std::vector<cv::Point3f> trajectory;
-    trajectory.emplace_back(0,0,0);
+    std::vector<cv::Point3f> trajectory; //in 3D for space tracking
+    trajectory.emplace_back(0.0f, 0.0f, 0.0f);
+    double lastTranslationNorm = 1.0;
 
-    cv::Mat globalPose = cv::Mat::eye(4,4,CV_64F);
+    cv::Mat globalPose = cv::Mat::eye(4, 4, CV_64F);
     std::vector<cv::Point3f> globalCloud;
 
     // initial display
@@ -126,6 +136,8 @@ int main() {
         std::vector<std::vector<cv::DMatch>> knn;
         matcher->knnMatch(prevDesc, currDesc, knn, 2);
 
+        //filter matches so only good ones are kept and makes sure they are infront and close enough
+        //dont really care to have points that are super far away bc it makes the trajectory have more errors
         std::vector<cv::DMatch> good;
         for (auto &v : knn) {
             if (v.size()>=2 && v[0].distance < 0.55*v[1].distance && v[0].distance < 150)
@@ -141,45 +153,51 @@ int main() {
 
         // essential + R|t
         cv::Mat inMask;
-        cv::Mat E = cv::findEssentialMat(pts1, pts2, K, cv::RANSAC, 0.99999, 1.0, inMask);
+        cv::Mat E = cv::findEssentialMat(pts1, pts2, K, cv::RANSAC, 0.9999, 0.5, inMask);
         cv::Mat R, t;
         cv::recoverPose(E, pts1, pts2, K, R, t, inMask);
 
-        // build 4x4 relative-pose
-        cv::Mat T = cv::Mat::eye(4,4,CV_64F);
-        R.copyTo(T(cv::Rect(0,0,3,3)));
-        t.copyTo(T(cv::Rect(3,0,1,3)));
+        //use last t's to estimate t to make trajectory smoother
+        if (cv::norm(t) > 0.000001) {
+            t = t / cv::norm(t) * lastTranslationNorm; //normalize t to unit length
+        }
 
-        // update globalPose: chain inverse so it stays camera→world
+        // build 4x4 relative-pose
+        cv::Mat T = cv::Mat::eye(4, 4, CV_64F);
+        R.copyTo(T(cv::Rect(0, 0, 3, 3)));
+        t.copyTo(T(cv::Rect(3, 0, 1, 3)));
+
+        // update globalPose updates so the full trajectory is in the world frame
         cv::Mat posePrev = globalPose.clone();
         globalPose = posePrev * T.inv();
+        lastTranslationNorm = cv::norm(globalPose.col(3) - posePrev.col(3)); //update last translation norm
 
         // update trajectory
         trajectory.emplace_back(
-            float(globalPose.at<double>(0,3)),
-            float(globalPose.at<double>(1,3)),
-            float(globalPose.at<double>(2,3))
+            float(globalPose.at<double>(0, 3)),
+            float(globalPose.at<double>(1, 3)),
+            float(globalPose.at<double>(2, 3))
         );
 
         // triangulate in prev frame coords
-        cv::Mat P1 = K * cv::Mat::eye(3,4,CV_64F);
-        cv::Mat P2 = K * T(cv::Rect(0,0,4,3));
+        cv::Mat P1 = K * cv::Mat::eye(3, 4, CV_64F);
+        cv::Mat P2 = K * T(cv::Rect(0, 0, 4, 3));
         cv::Mat pts4D;
         cv::triangulatePoints(P1, P2, pts1, pts2, pts4D);
 
         std::vector<cv::Point3f> tmpPts;
-        cv::convertPointsFromHomogeneous(pts4D.t(), tmpPts);
+        cv::convertPointsFromHomogeneous(pts4D.t(), tmpPts); //wants Nx4 instead of 4xN
 
         // map each into world via posePrev
         for (auto &p : tmpPts) {
-            cv::Mat ph = (cv::Mat_<double>(4,1) << p.x, p.y, p.z, 1.0);
-            cv::Mat pw = posePrev * ph;
+            cv::Mat ph = (cv::Mat_<double>(4,1) << p.x, p.y, p.z, 1.0); //homogeneous coords
+            cv::Mat pw = posePrev * ph; //transforms to world coords
             double w = pw.at<double>(3,0);
-            if (w > 1e-6 && (p.z > 0 && p.z < 100) && p.x > -30 && p.x < 30) {
+            if (w > 1e-6 && (p.z > 0 && p.z < 120) && p.x > -40 && p.x < 40) { //filter out bad points from mapping
                 globalCloud.emplace_back(
-                    float(pw.at<double>(0,0)/w),
-                    float(pw.at<double>(1,0)/w),
-                    float(pw.at<double>(2,0)/w)
+                    float(pw.at<double>(0, 0)/w),
+                    float(pw.at<double>(1, 0)/w),
+                    float(pw.at<double>(2, 0)/w)
                 );
             }
         }
