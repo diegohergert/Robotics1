@@ -1,2 +1,2 @@
 # Robotics1
-robotics hw and projects
+Robotics Homework using OpenCV and written in c++
